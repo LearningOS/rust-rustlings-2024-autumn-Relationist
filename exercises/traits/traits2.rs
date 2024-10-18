@@ -6,15 +6,19 @@
 //
 // No boiler plate code this time, you can do this!
 //
-// Execute `rustlings hint traits2` or use the `hint` watch subcommand for a hint.
-
-// I AM NOT DONE
 
 trait AppendBar {
     fn append_bar(self) -> Self;
 }
 
 // TODO: Implement trait `AppendBar` for a vector of strings.
+impl AppendBar for Vec<String> {
+    fn append_bar(self) -> Self {
+        let mut new_vec = self.clone(); // 克隆原始 vector
+        new_vec.push(String::from("Bar")); // 在克隆的 vector 末尾添加 "Bar"
+        new_vec // 返回新的 vector
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,87 +1,144 @@
 /*
-	bfs
-	This problem requires you to implement a basic BFS algorithm
+    binary_search tree
+    This problem requires you to implement a basic interface for a binary tree
 */
 
-//I AM NOT DONE
-use std::collections::VecDeque;
+use std::cmp::Ordering;
+use std::fmt::Debug;
 
-// Define a graph
-struct Graph {
-    adj: Vec<Vec<usize>>, 
+#[derive(Debug)]
+struct TreeNode<T>
+where
+    T: Ord,
+{
+    value: T,
+    left: Option<Box<TreeNode<T>>>,
+    right: Option<Box<TreeNode<T>>>,
 }
 
-impl Graph {
-    // Create a new graph with n vertices
-    fn new(n: usize) -> Self {
-        Graph {
-            adj: vec![vec![]; n],
+#[derive(Debug)]
+struct BinarySearchTree<T>
+where
+    T: Ord,
+{
+    root: Option<Box<TreeNode<T>>>,
+}
+
+impl<T> TreeNode<T>
+where
+    T: Ord,
+{
+    fn new(value: T) -> Self {
+        TreeNode {
+            value,
+            left: None,
+            right: None,
         }
     }
+}
 
-    // Add an edge to the graph
-    fn add_edge(&mut self, src: usize, dest: usize) {
-        self.adj[src].push(dest); 
-        self.adj[dest].push(src); 
+impl<T> BinarySearchTree<T>
+where
+    T: Ord,
+{
+    fn new() -> Self {
+        BinarySearchTree { root: None }
     }
 
-    // Perform a breadth-first search on the graph, return the order of visited nodes
-    fn bfs_with_return(&self, start: usize) -> Vec<usize> {
-        
-		//TODO
+    // Insert a value into the BST
+    fn insert(&mut self, value: T) {
+        insert_node(&mut self.root, value);
+    }
 
-        let mut visit_order = vec![];
-        visit_order
+    // Search for a value in the BST
+    fn search(&self, value: T) -> bool {
+        search_node(&self.root, value)
     }
 }
 
+impl<T> TreeNode<T>
+where
+    T: Ord,
+{
+    // Insert a node into the tree
+    fn insert(&mut self, value: T) {
+        match value.cmp(&self.value) {
+            Ordering::Less => insert_node(&mut self.left, value),
+            Ordering::Greater => insert_node(&mut self.right, value),
+            Ordering::Equal => return,
+        }
+    }
+}
+
+fn insert_node<T>(node: &mut Option<Box<TreeNode<T>>>, value: T)
+where
+    T: Ord,
+{
+    match node {
+        Some(node) => match value.cmp(&node.value) {
+            Ordering::Less => insert_node(&mut node.left, value),
+            Ordering::Greater => insert_node(&mut node.right, value),
+            Ordering::Equal => return,
+        },
+        None => *node = Some(Box::new(TreeNode::new(value))),
+    }
+}
+
+fn search_node<T>(node: &Option<Box<TreeNode<T>>>, value: T) -> bool
+where
+    T: Ord,
+{
+    match node {
+        Some(node) => match value.cmp(&node.value) {
+            Ordering::Less => search_node(&node.left, value),
+            Ordering::Greater => search_node(&node.right, value),
+            Ordering::Equal => true,
+        },
+        None => false
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_bfs_all_nodes_visited() {
-        let mut graph = Graph::new(5);
-        graph.add_edge(0, 1);
-        graph.add_edge(0, 4);
-        graph.add_edge(1, 2);
-        graph.add_edge(1, 3);
-        graph.add_edge(1, 4);
-        graph.add_edge(2, 3);
-        graph.add_edge(3, 4);
+    fn test_insert_and_search() {
+        let mut bst = BinarySearchTree::new();
 
-        let visited_order = graph.bfs_with_return(0);
-        assert_eq!(visited_order, vec![0, 1, 4, 2, 3]);
+        assert_eq!(bst.search(1), false);
+
+        bst.insert(5);
+        bst.insert(3);
+        bst.insert(7);
+        bst.insert(2);
+        bst.insert(4);
+
+        assert_eq!(bst.search(5), true);
+        assert_eq!(bst.search(3), true);
+        assert_eq!(bst.search(7), true);
+        assert_eq!(bst.search(2), true);
+        assert_eq!(bst.search(4), true);
+
+        assert_eq!(bst.search(1), false);
+        assert_eq!(bst.search(6), false);
     }
 
     #[test]
-    fn test_bfs_different_start() {
-        let mut graph = Graph::new(3);
-        graph.add_edge(0, 1);
-        graph.add_edge(1, 2);
+    fn test_insert_duplicate() {
+        let mut bst = BinarySearchTree::new();
 
-        let visited_order = graph.bfs_with_return(2);
-        assert_eq!(visited_order, vec![2, 1, 0]);
-    }
+        bst.insert(1);
+        bst.insert(1);
 
-    #[test]
-    fn test_bfs_with_cycle() {
-        let mut graph = Graph::new(3);
-        graph.add_edge(0, 1);
-        graph.add_edge(1, 2);
-        graph.add_edge(2, 0);
+        assert_eq!(bst.search(1), true);
 
-        let visited_order = graph.bfs_with_return(0);
-        assert_eq!(visited_order, vec![0, 1, 2]);
-    }
-
-    #[test]
-    fn test_bfs_single_node() {
-        let mut graph = Graph::new(1);
-
-        let visited_order = graph.bfs_with_return(0);
-        assert_eq!(visited_order, vec![0]);
+        match bst.root {
+            Some(ref node) => {
+                assert!(node.left.is_none());
+                assert!(node.right.is_none());
+            }
+            None => panic!("Root should not be None after insertion"),
+        }
     }
 }
-
